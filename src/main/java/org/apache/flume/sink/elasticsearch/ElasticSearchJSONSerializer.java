@@ -41,6 +41,7 @@ import java.util.List;
 public class ElasticSearchJSONSerializer implements
         ElasticSearchEventSerializer {
 
+    private static String DOCUMENT_ID = "documentIdName";
     private static String ADD_TIMESTAMP = "addTimeStamp";
     private static String TIMESTAMP_FORMAT = "timeStampFromat";
     private static String USE_SHA1_DOC_ID = "useSHA1DocumnetID";
@@ -53,6 +54,8 @@ public class ElasticSearchJSONSerializer implements
     private boolean useSHA1DocumnetID;
 
     private List<String> saveHeaders;
+
+    private String docIdName;
 
 
     @Override
@@ -72,6 +75,8 @@ public class ElasticSearchJSONSerializer implements
                 saveHeaders.add(header.trim());
             }
         }
+
+        docIdName = context.getString(DOCUMENT_ID, null);
     }
 
     @Override
@@ -83,7 +88,7 @@ public class ElasticSearchJSONSerializer implements
         String raw = new String(event.getBody(), charset);
         JSONObject content = JSONObject.parseObject(raw);
         if (useSHA1DocumnetID) {
-            content.put("_id", DigestUtils.sha1Hex(raw));
+            content.put(docIdName, DigestUtils.sha1Hex(raw));
         }
         if (addTimeStamp) {
             content.put("@timestamp", dateFormat.format(new Date()));
@@ -96,4 +101,7 @@ public class ElasticSearchJSONSerializer implements
         return content;
     }
 
+    public String getDocmentIdName() {
+        return docIdName;
+    }
 }

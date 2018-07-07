@@ -49,6 +49,7 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
     private static final String INDEX_PARAM = "_index";
     private static final String TYPE_PARAM = "_type";
     private static final String BULK_ENDPOINT = "_bulk";
+    private static final String DOCUMENT_ID = "_id";
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchRestClient.class);
 
@@ -57,6 +58,8 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
 
     private StringBuilder bulkBuilder;
     private HttpClient httpClient;
+
+    private String docIdName;
 
     public ElasticSearchRestClient(String[] hostNames,
                                    ElasticSearchEventSerializer serializer) {
@@ -67,7 +70,7 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
             }
         }
         this.serializer = serializer;
-
+        this.docIdName = serializer.getDocmentIdName();
         serversList = new RoundRobinList<String>(Arrays.asList(hostNames));
         httpClient = HttpClients.createDefault();
         bulkBuilder = new StringBuilder();
@@ -97,6 +100,9 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
         Map<String, String> indexParameters = new HashMap<String, String>();
         indexParameters.put(INDEX_PARAM, indexNameBuilder.getIndexName(event));
         indexParameters.put(TYPE_PARAM, indexType);
+        if (docIdName != null && !"".equals(docIdName.trim())) {
+            indexParameters.put(DOCUMENT_ID, content.getString(docIdName));
+        }
         parameters.put(INDEX_OPERATION_NAME, indexParameters);
 
         synchronized (bulkBuilder) {

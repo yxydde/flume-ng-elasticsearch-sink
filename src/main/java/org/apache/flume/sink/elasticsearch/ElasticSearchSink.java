@@ -71,7 +71,6 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
     private ElasticSearchClient client = null;
     private Context elasticSearchClientContext = null;
 
-    private ElasticSearchIndexRequestBuilderFactory indexRequestFactory;
     private ElasticSearchEventSerializer eventSerializer;
     private IndexNameBuilder indexNameBuilder;
     private SinkCounter sinkCounter;
@@ -183,11 +182,7 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
                     .forName(serializerClazz);
             Configurable serializer = clazz.newInstance();
 
-            if (serializer instanceof ElasticSearchIndexRequestBuilderFactory) {
-                indexRequestFactory
-                        = (ElasticSearchIndexRequestBuilderFactory) serializer;
-                indexRequestFactory.configure(serializerContext);
-            } else if (serializer instanceof ElasticSearchEventSerializer) {
+            if (serializer instanceof ElasticSearchEventSerializer) {
                 eventSerializer = (ElasticSearchEventSerializer) serializer;
                 eventSerializer.configure(serializerContext);
             } else {
@@ -247,7 +242,7 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
         sinkCounter.start();
         try {
             client = clientFactory.getClient(clientType, serverAddresses,
-                    clusterName, eventSerializer, indexRequestFactory);
+                    clusterName, eventSerializer);
             client.configure(elasticSearchClientContext);
 
             sinkCounter.incrementConnectionCreatedCount();

@@ -19,7 +19,6 @@
 package org.apache.flume.sink.elasticsearch.client;
 
 import org.apache.flume.sink.elasticsearch.ElasticSearchEventSerializer;
-import org.apache.flume.sink.elasticsearch.ElasticSearchIndexRequestBuilderFactory;
 
 import java.net.UnknownHostException;
 
@@ -39,12 +38,9 @@ public class ElasticSearchClientFactory {
      * @return
      */
     public ElasticSearchClient getClient(String clientType, String[] hostNames,
-                                         String clusterName, ElasticSearchEventSerializer serializer,
-                                         ElasticSearchIndexRequestBuilderFactory indexBuilder) throws NoSuchClientTypeException, UnknownHostException {
+                                         String clusterName, ElasticSearchEventSerializer serializer) throws NoSuchClientTypeException, UnknownHostException {
         if (clientType.equalsIgnoreCase(TransportClient) && serializer != null) {
             return new ElasticSearchTransportClient(hostNames, clusterName, serializer);
-        } else if (clientType.equalsIgnoreCase(TransportClient) && indexBuilder != null) {
-            return new ElasticSearchTransportClient(hostNames, clusterName, indexBuilder);
         } else if (clientType.equalsIgnoreCase(RestClient) && serializer != null) {
             return new ElasticSearchRestClient(hostNames, serializer);
         }

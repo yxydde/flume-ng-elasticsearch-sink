@@ -18,11 +18,11 @@
  */
 package org.apache.flume.sink.elasticsearch.client;
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.EventDeliveryException;
 import org.apache.flume.sink.elasticsearch.ElasticSearchEventSerializer;
-import org.apache.flume.sink.elasticsearch.ElasticSearchIndexRequestBuilderFactory;
 import org.apache.flume.sink.elasticsearch.IndexNameBuilder;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -47,13 +47,12 @@ import static org.apache.flume.sink.elasticsearch.ElasticSearchSinkConstants.DEF
 
 public class ElasticSearchTransportClient implements ElasticSearchClient {
 
-    public static final Logger logger = LoggerFactory
-            .getLogger(ElasticSearchTransportClient.class);
+    public static final Logger logger = LoggerFactory.getLogger(ElasticSearchTransportClient.class);
 
     private TransportAddress[] serverAddresses;
     private ElasticSearchEventSerializer serializer;
-    private ElasticSearchIndexRequestBuilderFactory indexRequestBuilderFactory;
     private BulkRequestBuilder bulkRequestBuilder;
+    private String docIdName;
 
     private Client client;
 
@@ -68,13 +67,7 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
                                         ElasticSearchEventSerializer serializer) throws UnknownHostException {
         configureHostnames(hostNames);
         this.serializer = serializer;
-        openClient(clusterName);
-    }
-
-    public ElasticSearchTransportClient(String[] hostNames, String clusterName,
-                                        ElasticSearchIndexRequestBuilderFactory indexBuilder) throws UnknownHostException {
-        configureHostnames(hostNames);
-        this.indexRequestBuilderFactory = indexBuilder;
+        this.docIdName = serializer.getDocmentIdName();
         openClient(clusterName);
     }
 
@@ -85,8 +78,7 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
         for (int i = 0; i < hostNames.length; i++) {
             String[] hostPort = hostNames[i].trim().split(":");
             String host = hostPort[0].trim();
-            int port = hostPort.length == 2 ? Integer.parseInt(hostPort[1].trim())
-                    : DEFAULT_PORT;
+            int port = hostPort.length == 2 ? Integer.parseInt(hostPort[1].trim()) : DEFAULT_PORT;
             serverAddresses[i] = new TransportAddress(InetAddress.getByName(host), port);
         }
     }
@@ -106,14 +98,14 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
             bulkRequestBuilder = client.prepareBulk();
         }
 
-        IndexRequestBuilder indexRequestBuilder = null;
-        if (indexRequestBuilderFactory == null) {
-            indexRequestBuilder = client
-                    .prepareIndex(indexNameBuilder.getIndexName(event), indexType)
-                    .setSource(serializer.getContent(event));
+        IndexRequestBuilder indexRequestBuilder;
+        JSONObject content = serializer.getContent(event);
+        if (docIdName == null) {
+            indexRequestBuilder = client.prepareIndex(indexNameBuilder.getIndexName(event), indexType)
+                    .setSource(content);
         } else {
-            indexRequestBuilder = indexRequestBuilderFactory.createIndexRequest(
-                    client, indexNameBuilder.getIndexPrefix(event), indexType, event);
+            indexRequestBuilder = client.prepareIndex(indexNameBuilder.getIndexName(event), indexType, content.getString(docIdName))
+                    .setSource(content);
         }
 
         bulkRequestBuilder.add(indexRequestBuilder);
@@ -137,10 +129,8 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
      * @param clusterName
      */
     private void openClient(String clusterName) {
-        logger.info("Using ElasticSearch hostnames: {} ",
-                Arrays.toString(serverAddresses));
-        Settings settings = Settings.builder()
-                .put("cluster.name", clusterName).build();
+        logger.info("Using ElasticSearch hostnames: {} ", Arrays.toString(serverAddresses));
+        Settings settings = Settings.builder().put("cluster.name", clusterName).build();
 
         TransportClient transportClient = new PreBuiltTransportClient(settings);
         for (TransportAddress host : serverAddresses) {

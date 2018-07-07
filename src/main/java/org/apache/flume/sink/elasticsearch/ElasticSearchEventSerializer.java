@@ -44,4 +44,6 @@ public interface ElasticSearchEventSerializer extends Configurable,
      * @throws IOException If an error occurs during serialization
      */
     abstract JSONObject getContent(Event event) throws IOException;
+
+    String getDocmentIdName();
 }

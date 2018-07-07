@@ -54,12 +54,6 @@ public class ElasticSearchSinkConstants {
     public static final String BATCH_SIZE = "batchSize";
 
     /**
-     * TTL in days, when set will cause the expired documents to be deleted
-     * automatically, if not set documents will never be automatically deleted
-     */
-    public static final String TTL = "ttl";
-
-    /**
      * The fully qualified class name of the serializer the sink should use.
      */
     public static final String SERIALIZER = "serializer";
