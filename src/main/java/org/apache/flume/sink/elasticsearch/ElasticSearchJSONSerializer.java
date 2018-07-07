@@ -19,11 +19,17 @@
 package org.apache.flume.sink.elasticsearch;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.conf.ComponentConfiguration;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Basic serializer that serializes the event body and header fields into
@@ -35,20 +41,59 @@ import java.io.IOException;
 public class ElasticSearchJSONSerializer implements
         ElasticSearchEventSerializer {
 
+    private static String ADD_TIMESTAMP = "addTimeStamp";
+    private static String TIMESTAMP_FORMAT = "timeStampFromat";
+    private static String USE_SHA1_DOC_ID = "useSHA1DocumnetID";
+    private static String HEADERS_TO_SAVE = "headersToSave";
+
+    private boolean addTimeStamp;
+    private DateFormat dateFormat;
+    private String timeStampFormat;
+
+    private boolean useSHA1DocumnetID;
+
+    private List<String> saveHeaders;
+
+
     @Override
     public void configure(Context context) {
-        // NO-OP...
+        addTimeStamp = context.getBoolean(ADD_TIMESTAMP, false);
+        useSHA1DocumnetID = context.getBoolean(USE_SHA1_DOC_ID, false);
+        timeStampFormat = context.getString(TIMESTAMP_FORMAT, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        if (addTimeStamp) {
+            dateFormat = new SimpleDateFormat(timeStampFormat);
+        }
+
+        String headersToSave = context.getString(HEADERS_TO_SAVE, null);
+        if (headersToSave != null && !"".equals(headersToSave.trim())) {
+            String[] array = headersToSave.split(",");
+            saveHeaders = new ArrayList<String>();
+            for (String header : array) {
+                saveHeaders.add(header.trim());
+            }
+        }
     }
 
     @Override
     public void configure(ComponentConfiguration conf) {
-
     }
 
     @Override
     public JSONObject getContent(Event event) throws IOException {
         String raw = new String(event.getBody(), charset);
-        return JSONObject.parseObject(raw);
+        JSONObject content = JSONObject.parseObject(raw);
+        if (useSHA1DocumnetID) {
+            content.put("_id", DigestUtils.sha1Hex(raw));
+        }
+        if (addTimeStamp) {
+            content.put("@timestamp", dateFormat.format(new Date()));
+        }
+        if (saveHeaders != null && saveHeaders.size() > 0) {
+            for (String header : saveHeaders) {
+                content.put(header, event.getHeaders().get(header));
+            }
+        }
+        return content;
     }
 
 }
