@@ -29,7 +29,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +69,7 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
         this.serializer = serializer;
 
         serversList = new RoundRobinList<String>(Arrays.asList(hostNames));
-        httpClient = new DefaultHttpClient();
+        httpClient = HttpClients.createDefault();
         bulkBuilder = new StringBuilder();
     }
 
@@ -121,11 +121,14 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
             triesCount++;
             String host = serversList.get();
             String url = host + "/" + BULK_ENDPOINT;
+            logger.debug("Call Rest Api:" + url);
+            logger.debug("Post Entity:" + entity);
             HttpPost httpRequest = new HttpPost(url);
+            httpRequest.setHeader("Content-Type", "application/x-ndjson");
             httpRequest.setEntity(new StringEntity(entity));
             response = httpClient.execute(httpRequest);
             statusCode = response.getStatusLine().getStatusCode();
-            logger.info("Status code from elasticsearch: " + statusCode);
+            logger.debug("Status code from elasticsearch: " + statusCode);
             if (response.getEntity() != null) {
                 logger.debug("Status message from elasticsearch: " +
                         EntityUtils.toString(response.getEntity(), "UTF-8"));
