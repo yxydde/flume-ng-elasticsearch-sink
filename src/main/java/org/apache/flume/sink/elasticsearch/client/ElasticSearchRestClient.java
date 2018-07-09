@@ -96,6 +96,9 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
     @Override
     public void addEvent(Event event, IndexNameBuilder indexNameBuilder, String indexType) throws Exception {
         JSONObject content = serializer.getContent(event);
+        if (content == null) {
+            return;
+        }
         Map<String, Map<String, String>> parameters = new HashMap<String, Map<String, String>>();
         Map<String, String> indexParameters = new HashMap<String, String>();
         indexParameters.put(INDEX_PARAM, indexNameBuilder.getIndexName(event));
@@ -131,7 +134,7 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
             logger.debug("Post Entity:" + entity);
             HttpPost httpRequest = new HttpPost(url);
             httpRequest.setHeader("Content-Type", "application/x-ndjson");
-            httpRequest.setEntity(new StringEntity(entity));
+            httpRequest.setEntity(new StringEntity(entity,"UTF-8"));
             response = httpClient.execute(httpRequest);
             statusCode = response.getStatusLine().getStatusCode();
             logger.debug("Status code from elasticsearch: " + statusCode);

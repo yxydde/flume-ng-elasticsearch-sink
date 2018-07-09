@@ -23,6 +23,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.conf.ComponentConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -40,6 +42,10 @@ import java.util.List;
  */
 public class ElasticSearchJSONSerializer implements
         ElasticSearchEventSerializer {
+
+
+    private static final Logger logger = LoggerFactory.getLogger(ElasticSearchJSONSerializer.class);
+
 
     private static String DOCUMENT_ID = "documentIdName";
     private static String ADD_TIMESTAMP = "addTimeStamp";
@@ -85,18 +91,25 @@ public class ElasticSearchJSONSerializer implements
 
     @Override
     public JSONObject getContent(Event event) throws IOException {
-        String raw = new String(event.getBody(), charset);
-        JSONObject content = JSONObject.parseObject(raw);
-        if (useSHA1DocumnetID) {
-            content.put(docIdName, DigestUtils.sha1Hex(raw));
-        }
-        if (addTimeStamp) {
-            content.put("@timestamp", dateFormat.format(new Date()));
-        }
-        if (saveHeaders != null && saveHeaders.size() > 0) {
-            for (String header : saveHeaders) {
-                content.put(header, event.getHeaders().get(header));
+        JSONObject content = null;
+        String raw = new String(event.getBody(), "UTF-8");
+        try {
+            content = JSONObject.parseObject(raw);
+            if (useSHA1DocumnetID) {
+                content.put(docIdName, DigestUtils.sha1Hex(raw));
             }
+            if (addTimeStamp) {
+                content.put("@timestamp", dateFormat.format(new Date()));
+            }
+            if (saveHeaders != null && saveHeaders.size() > 0) {
+                for (String header : saveHeaders) {
+                    content.put(header, event.getHeaders().get(header));
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e.fillInStackTrace());
+            logger.error(raw);
         }
         return content;
     }

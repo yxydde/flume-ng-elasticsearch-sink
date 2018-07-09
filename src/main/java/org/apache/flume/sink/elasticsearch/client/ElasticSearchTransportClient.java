@@ -94,12 +94,16 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
     @Override
     public void addEvent(Event event, IndexNameBuilder indexNameBuilder,
                          String indexType) throws Exception {
+        JSONObject content = serializer.getContent(event);
+        if (content == null) {
+            return;
+        }
         if (bulkRequestBuilder == null) {
             bulkRequestBuilder = client.prepareBulk();
         }
 
         IndexRequestBuilder indexRequestBuilder;
-        JSONObject content = serializer.getContent(event);
+
         if (docIdName == null) {
             indexRequestBuilder = client.prepareIndex(indexNameBuilder.getIndexName(event), indexType)
                     .setSource(content);
