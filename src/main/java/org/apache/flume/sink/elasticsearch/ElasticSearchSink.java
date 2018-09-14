@@ -204,7 +204,7 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
         }
 
         Context indexnameBuilderContext = new Context();
-        serializerContext.putAll(
+        indexnameBuilderContext.putAll(
                 context.getSubProperties(INDEX_NAME_BUILDER_PREFIX));
 
         try {
