@@ -20,6 +20,7 @@ package org.apache.flume.sink.elasticsearch;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.conf.ComponentConfiguration;
@@ -27,11 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Basic serializer that serializes the event body and header fields into
@@ -54,7 +54,7 @@ public class ElasticSearchJSONSerializer implements
     private static String HEADERS_TO_SAVE = "headersToSave";
 
     private boolean addTimeStamp;
-    private DateFormat dateFormat;
+    private FastDateFormat dateFormat;
     private String timeStampFormat;
 
     private boolean useSHA1DocumnetID;
@@ -70,7 +70,8 @@ public class ElasticSearchJSONSerializer implements
         useSHA1DocumnetID = context.getBoolean(USE_SHA1_DOC_ID, false);
         timeStampFormat = context.getString(TIMESTAMP_FORMAT, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         if (addTimeStamp) {
-            dateFormat = new SimpleDateFormat(timeStampFormat);
+            dateFormat = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss",
+                    TimeZone.getTimeZone("UTC"));
         }
 
         String headersToSave = context.getString(HEADERS_TO_SAVE, null);
