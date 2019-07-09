@@ -25,7 +25,6 @@ import org.apache.flume.EventDeliveryException;
 import org.apache.flume.sink.elasticsearch.ElasticSearchEventSerializer;
 import org.apache.flume.sink.elasticsearch.IndexNameBuilder;
 import org.apache.http.HttpHost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
@@ -89,6 +88,11 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
 
     @Override
     public void close() {
+        try {
+            restClient.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
