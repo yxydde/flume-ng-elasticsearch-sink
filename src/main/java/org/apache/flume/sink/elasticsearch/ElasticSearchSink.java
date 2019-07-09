@@ -23,7 +23,6 @@ import com.google.common.base.Throwables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flume.*;
 import org.apache.flume.conf.Configurable;
-import org.apache.flume.formatter.output.BucketPath;
 import org.apache.flume.instrumentation.SinkCounter;
 import org.apache.flume.sink.AbstractSink;
 import org.apache.flume.sink.elasticsearch.client.ElasticSearchClient;
@@ -57,14 +56,11 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
 
     private final CounterGroup counterGroup = new CounterGroup();
 
-    private static final int defaultBatchSize = 100;
+    private static final int DEFAULT_BATCH_SIZE = 100;
 
-    private int batchSize = defaultBatchSize;
+    private int batchSize = DEFAULT_BATCH_SIZE;
 
-    private String clusterName = DEFAULT_CLUSTER_NAME;
     private String indexName = DEFAULT_INDEX_NAME;
-    private String indexType = DEFAULT_INDEX_TYPE;
-    private String clientType = DEFAULT_CLIENT_TYPE;
 
     private String[] serverAddresses = null;
 
@@ -91,8 +87,7 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
                 if (event == null) {
                     break;
                 }
-                String realIndexType = BucketPath.escapeString(indexType, event.getHeaders());
-                client.addEvent(event, indexNameBuilder, realIndexType);
+                client.addEvent(event, indexNameBuilder);
             }
 
             if (count <= 0) {
@@ -144,25 +139,12 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
         Preconditions.checkState(serverAddresses != null
                 && serverAddresses.length > 0, "Missing Param:" + HOSTNAMES);
 
-
         if (StringUtils.isNotBlank(context.getString(INDEX_NAME))) {
             this.indexName = context.getString(INDEX_NAME);
         }
 
-        if (StringUtils.isNotBlank(context.getString(INDEX_TYPE))) {
-            this.indexType = context.getString(INDEX_TYPE);
-        }
-
-        if (StringUtils.isNotBlank(context.getString(CLUSTER_NAME))) {
-            this.clusterName = context.getString(CLUSTER_NAME);
-        }
-
         if (StringUtils.isNotBlank(context.getString(BATCH_SIZE))) {
             this.batchSize = Integer.parseInt(context.getString(BATCH_SIZE));
-        }
-
-        if (StringUtils.isNotBlank(context.getString(CLIENT_TYPE))) {
-            clientType = context.getString(CLIENT_TYPE);
         }
 
         elasticSearchClientContext = new Context();
@@ -226,10 +208,6 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
 
         Preconditions.checkState(StringUtils.isNotBlank(indexName),
                 "Missing Param:" + INDEX_NAME);
-        Preconditions.checkState(StringUtils.isNotBlank(indexType),
-                "Missing Param:" + INDEX_TYPE);
-        Preconditions.checkState(StringUtils.isNotBlank(clusterName),
-                "Missing Param:" + CLUSTER_NAME);
         Preconditions.checkState(batchSize >= 1, BATCH_SIZE
                 + " must be greater than 0");
     }
@@ -241,10 +219,8 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
         logger.info("ElasticSearch sink {} started");
         sinkCounter.start();
         try {
-            client = clientFactory.getClient(clientType, serverAddresses,
-                    clusterName, eventSerializer);
+            client = clientFactory.getClient(ElasticSearchClientFactory.REST_CLIENT, serverAddresses, eventSerializer);
             client.configure(elasticSearchClientContext);
-
             sinkCounter.incrementConnectionCreatedCount();
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -254,7 +230,6 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
                 sinkCounter.incrementConnectionClosedCount();
             }
         }
-
         super.start();
     }
 

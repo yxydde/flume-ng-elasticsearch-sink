@@ -38,16 +38,6 @@ public class ElasticSearchSinkConstants {
     public static final String INDEX_NAME = "indexName";
 
     /**
-     * The type to index the document to, defaults to 'log'
-     */
-    public static final String INDEX_TYPE = "indexType";
-
-    /**
-     * Name of the ElasticSearch cluster to connect to
-     */
-    public static final String CLUSTER_NAME = "clusterName";
-
-    /**
      * Maximum number of events the sink should take from the channel per
      * transaction, if available. Defaults to 100
      */
@@ -91,12 +81,7 @@ public class ElasticSearchSinkConstants {
      * DEFAULTS USED BY THE SINK
      */
 
-    public static final int DEFAULT_PORT = 9300;
-
     public static final String DEFAULT_INDEX_NAME = "flume";
-    public static final String DEFAULT_INDEX_TYPE = "log";
-    public static final String DEFAULT_CLUSTER_NAME = "elasticsearch";
-    public static final String DEFAULT_CLIENT_TYPE = "transport";
 
     public static final String DEFAULT_SERIALIZER_CLASS = "org.apache.flume." +
             "sink.elasticsearch.ElasticSearchJSONSerializer";

@@ -38,11 +38,9 @@ public interface ElasticSearchClient extends Configurable {
      *
      * @param event            Flume Event
      * @param indexNameBuilder Index name builder which generates name of index to feed
-     * @param indexType        Name of type of document which will be sent to the elasticsearch cluster
      * @throws Exception
      */
-    public void addEvent(Event event, IndexNameBuilder indexNameBuilder,
-                         String indexType) throws Exception;
+    void addEvent(Event event, IndexNameBuilder indexNameBuilder) throws Exception;
 
     /**
      * Sends bulk to the elasticsearch cluster

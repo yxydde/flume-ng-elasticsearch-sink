@@ -57,7 +57,7 @@ public class ElasticSearchJSONSerializer implements
     private FastDateFormat dateFormat;
     private String timeStampFormat;
 
-    private boolean useSHA1DocumnetID;
+    private boolean useSha1DocumnetId;
 
     private List<String> saveHeaders;
 
@@ -67,7 +67,7 @@ public class ElasticSearchJSONSerializer implements
     @Override
     public void configure(Context context) {
         addTimeStamp = context.getBoolean(ADD_TIMESTAMP, false);
-        useSHA1DocumnetID = context.getBoolean(USE_SHA1_DOC_ID, false);
+        useSha1DocumnetId = context.getBoolean(USE_SHA1_DOC_ID, false);
         timeStampFormat = context.getString(TIMESTAMP_FORMAT, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         if (addTimeStamp) {
             dateFormat = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss",
@@ -96,7 +96,7 @@ public class ElasticSearchJSONSerializer implements
         String raw = new String(event.getBody(), "UTF-8");
         try {
             content = JSONObject.parseObject(raw);
-            if (useSHA1DocumnetID) {
+            if (useSha1DocumnetId) {
                 content.put(docIdName, DigestUtils.sha1Hex(raw));
             }
             if (addTimeStamp) {
@@ -115,6 +115,7 @@ public class ElasticSearchJSONSerializer implements
         return content;
     }
 
+    @Override
     public String getDocmentIdName() {
         return docIdName;
     }

@@ -20,28 +20,23 @@ package org.apache.flume.sink.elasticsearch.client;
 
 import org.apache.flume.sink.elasticsearch.ElasticSearchEventSerializer;
 
-import java.net.UnknownHostException;
-
 /**
  * Internal ElasticSearch client factory. Responsible for creating instance
  * of ElasticSearch clients.
  */
 public class ElasticSearchClientFactory {
-    public static final String TransportClient = "transport";
-    public static final String RestClient = "rest";
+
+    public static final String REST_CLIENT = "rest";
 
     /**
-     * @param clientType  String representation of client type
-     * @param hostNames   Array of strings that represents hostnames with ports (hostname:port)
-     * @param clusterName Elasticsearch cluster name used only by Transport Client
-     * @param serializer  Serializer of flume events to elasticsearch documents
+     * @param clientType String representation of client type
+     * @param hostNames  Array of strings that represents hostnames with ports (hostname:port)
+     * @param serializer Serializer of flume events to elasticsearch documents
      * @return
      */
     public ElasticSearchClient getClient(String clientType, String[] hostNames,
-                                         String clusterName, ElasticSearchEventSerializer serializer) throws NoSuchClientTypeException, UnknownHostException {
-        if (clientType.equalsIgnoreCase(TransportClient) && serializer != null) {
-            return new ElasticSearchTransportClient(hostNames, clusterName, serializer);
-        } else if (clientType.equalsIgnoreCase(RestClient) && serializer != null) {
+                                         ElasticSearchEventSerializer serializer) throws NoSuchClientTypeException {
+        if (clientType.equalsIgnoreCase(REST_CLIENT) && serializer != null) {
             return new ElasticSearchRestClient(hostNames, serializer);
         }
         throw new NoSuchClientTypeException();
