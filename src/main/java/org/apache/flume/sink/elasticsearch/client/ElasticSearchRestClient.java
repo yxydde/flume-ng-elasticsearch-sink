@@ -49,6 +49,7 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
     private static final String UPDATE_OPERATION_NAME = "update";
     private static final String UPSERT_OPERATION = "upsert";
     private static final String OPERATION = "operation";
+    private static final String KEY_TO_LOWERCASE = "keyToLowerCase";
     private static final String INDEX_PARAM = "_index";
     private static final String BULK_ENDPOINT = "/_bulk";
     private static final String DOCUMENT_ID = "_id";
@@ -62,6 +63,7 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
 
     private String docIdName;
     private String operation;
+    private boolean keyToLowerCase;
 
     public ElasticSearchRestClient(String[] hostNames,
                                    ElasticSearchEventSerializer serializer) {
@@ -84,6 +86,7 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
     @Override
     public void configure(Context context) {
         operation = context.getString(OPERATION, UPSERT_OPERATION);
+        keyToLowerCase = context.getBoolean(KEY_TO_LOWERCASE, false);
     }
 
     @Override
@@ -107,6 +110,13 @@ public class ElasticSearchRestClient implements ElasticSearchClient {
         JSONObject content = serializer.getContent(event);
         if (content == null) {
             return;
+        }
+        if (keyToLowerCase) {
+            JSONObject json = new JSONObject();
+            for (String key : content.keySet()) {
+                json.put(key.toLowerCase(), content.get(key));
+            }
+            content = json;
         }
         String indexName = indexNameBuilder.getIndexName(event);
         String eventOp = event.getHeaders().getOrDefault("operation", operation);

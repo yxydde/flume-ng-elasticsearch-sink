@@ -67,17 +67,6 @@ public class ElasticSearchSinkConstants {
             = INDEX_NAME_BUILDER + ".";
 
     /**
-     * The client type used for sending bulks to ElasticSearch
-     */
-    public static final String CLIENT_TYPE = "client";
-
-    /**
-     * The client prefix to extract the configuration that will be passed to
-     * elasticsearch client.
-     */
-    public static final String CLIENT_PREFIX = CLIENT_TYPE + ".";
-
-    /**
      * DEFAULTS USED BY THE SINK
      */
 

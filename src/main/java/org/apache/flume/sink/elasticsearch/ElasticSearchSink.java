@@ -147,8 +147,7 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
             this.batchSize = Integer.parseInt(context.getString(BATCH_SIZE));
         }
 
-        elasticSearchClientContext = new Context();
-        elasticSearchClientContext.putAll(context.getSubProperties(CLIENT_PREFIX));
+        elasticSearchClientContext = context;
 
         String serializerClazz = DEFAULT_SERIALIZER_CLASS;
         if (StringUtils.isNotBlank(context.getString(SERIALIZER))) {
