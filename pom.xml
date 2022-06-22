@@ -42,7 +42,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <elasticsearch.version>6.6.1</elasticsearch.version>
+        <elasticsearch.version>6.8.15</elasticsearch.version>
         <flume.version>1.8.0</flume.version>
     </properties>
 
